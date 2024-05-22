@@ -18,6 +18,7 @@ Edit the appropriate columns -- you're making two edits -- and the NULL rows wil
 All the other rows will remain the same.) */
 
 SELECT  product_name || ', ' || COALESCE(product_size, '') || ' (' || COALESCE(product_qty_type, 'unit') || ')'
+
 FROM    product
 
 
@@ -34,6 +35,7 @@ HINT: One of these approaches uses ROW_NUMBER() and one uses DENSE_RANK(). */
 
 SELECT 	    *
 			,	ROW_NUMBER() OVER( PARTITION BY customer_id ORDER BY market_date, transaction_time ASC) AS [Order]
+            
 FROM    customer_purchases
 
 /* 2. Reverse the numbering of the query from a part so each customer’s most recent visit is labeled 1, 
