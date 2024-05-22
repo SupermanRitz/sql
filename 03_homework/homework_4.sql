@@ -33,10 +33,12 @@ each new market date for each customer, or select only the unique market dates p
 (without purchase details) and number those visits. 
 HINT: One of these approaches uses ROW_NUMBER() and one uses DENSE_RANK(). */
 
+
 SELECT 	    *
 			,	ROW_NUMBER() OVER( PARTITION BY customer_id ORDER BY market_date, transaction_time ASC) AS [Order]
             
 FROM    customer_purchases
+
 
 /* 2. Reverse the numbering of the query from a part so each customer’s most recent visit is labeled 1, 
 then write another query that uses this one as a subquery (or temp table) and filters the results to 
@@ -54,7 +56,6 @@ WHERE		X.[Order] = 1
 
 /* 3. Using a COUNT() window function, include a value along with each row of the 
 customer_purchases table that indicates how many different times that customer has purchased that product_id. */
-
 SELECT 		X.*
 
 FROM		(
@@ -62,6 +63,8 @@ FROM		(
                         ,	COUNT(*) OVER( PARTITION BY customer_id, product_id ORDER BY product_id ) AS Product_Purchases_Count
                 FROM    customer_purchases
             ) X
+
+
 
 
 --Solution below removes repeats and shows breakdown by customer AND product_id
@@ -78,4 +81,5 @@ FROM			(
                     FROM    customer_purchases
                 ) X
 						
-;			
+;	
+		
