@@ -5,6 +5,8 @@ Create a logical model for a small bookstore. 📚
 
 At the minimum it should have employee, order, sales, customer, and book entities (tables). Determine sensible column and table design based on what you know about these concepts. Keep it simple, but work out sensible relationships to keep tables reasonably sized. Include a date table. There are several tools online you can use, I'd recommend [_Draw.io_](https://www.drawio.com/) or [_LucidChart_](https://www.lucidchart.com/pages/).
 
+![SQL_Assignment_Book_Store](https://github.com/SupermanRitz/sql/assets/26582539/5f5cb5cc-d4ec-4444-8fe4-90be1693e2ab)
+
 ## Question 2
 We want to create employee shifts, splitting up the day into morning and evening. Add this to the ERD.
 
@@ -14,8 +16,11 @@ The store wants to keep customer addresses. Propose two architectures for the CU
 _Hint, search type 1 vs type 2 slowly changing dimensions._
 
 Bonus: Are there privacy implications to this, why or why not?
+
+![customer_addresses](https://github.com/SupermanRitz/sql/assets/26582539/17d022c3-15f5-4eb6-891c-516304f58418)
+
 ```
-Your answer...
+Privacy implications: customer address data is personally identifiable information (PII), the bookstore would need to keep most of this data under restricted access, they would have an obligation to ensure stringent cybersecurity. They also need to keep the data as up-to-date as possible because there could be situations where a customer moves and their personal information may be sent to the wrong individual(s).
 ```
 
 ## Question 4
@@ -23,7 +28,9 @@ Review the AdventureWorks Schema [here](https://i.stack.imgur.com/LMu4W.gif)
 
 Highlight at least two differences between it and your ERD. Would you change anything in yours?
 ```
-Your answer...
+This schema breaks out as many individual components down as possible to separate tables which I presume is done to decrease memory usage during queries by reducing the need to create temporary tables as part of queries and procedures. Given this, I would create separate tables related to customer info for items like 'zip codes', 'countries', actual customer info being separate from user info (ie. username/account name aliases).
+Also all tables in the AW schema contains a 'modifieddate' column which tracks when changes are made to specific records. I would absolutely include such audit columns in my tables, specifically the following 4: [ 'InsertTime' , 'UpdateTime' , 'InsertBy' , 'Updateby' ]
+
 ```
 
 # Criteria
