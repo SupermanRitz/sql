@@ -18,8 +18,8 @@ Edit the appropriate columns -- you're making two edits -- and the NULL rows wil
 All the other rows will remain the same.) */
 
 SELECT  product_name || ', ' || COALESCE(product_size, '') || ' (' || COALESCE(product_qty_type, 'unit') || ')'
-FROM    product
 
+FROM    product
 
 
 --Windowed Functions
@@ -34,7 +34,9 @@ HINT: One of these approaches uses ROW_NUMBER() and one uses DENSE_RANK(). */
 
 SELECT 	    *
 			,	ROW_NUMBER() OVER( PARTITION BY customer_id ORDER BY market_date, transaction_time ASC) AS [Order]
+            
 FROM    customer_purchases
+
 
 /* 2. Reverse the numbering of the query from a part so each customer’s most recent visit is labeled 1, 
 then write another query that uses this one as a subquery (or temp table) and filters the results to 
@@ -53,6 +55,7 @@ WHERE		X.[Order] = 1
 /* 3. Using a COUNT() window function, include a value along with each row of the 
 customer_purchases table that indicates how many different times that customer has purchased that product_id. */
 
+
 SELECT 		X.*
 
 FROM		(
@@ -62,18 +65,83 @@ FROM		(
             ) X
 
 
---Solution below removes repeats and shows breakdown by customer AND product_id
-SELECT DISTINCT		X.product_id
-                ,	X.customer_id
-                ,	X.Product_Purchases_Count
-                ,	X.Total_purchased_by_customer
 
-FROM			(
 
-                    SELECT 	    *
-                            ,	COUNT(*) OVER( PARTITION BY customer_id, product_id ORDER BY product_id ) AS Product_purchases_count
-                            ,	SUM(quantity) OVER( PARTITION BY customer_id, product_id ORDER BY product_id) AS Total_purchased_by_customer
-                    FROM    customer_purchases
-                ) X
-						
-;			
+
+
+-- String manipulations
+/* 1. Some product names in the product table have descriptions like "Jar" or "Organic". 
+These are separated from the product name with a hyphen. 
+Create a column using SUBSTR (and a couple of other commands) that captures these, but is otherwise NULL. 
+Remove any trailing or leading whitespaces. Don't just use a case statement for each product! 
+
+| product_name               | description |
+|----------------------------|-------------|
+| Habanero Peppers - Organic | Organic     |
+
+Hint: you might need to use INSTR(product_name,'-') to find the hyphens. INSTR will help split the column. */
+SELECT  *
+        ,	CASE 
+                        WHEN INSTR(product_name, ' -') > 0 THEN LTRIM( RTRIM (SUBSTR(product_name , INSTR(product_name, ' - ')+3, LENGTH(product_name) - INSTR(product_name, ' - ') ) ) )
+                        ELSE NULL
+                END AS description
+							
+FROM 		product
+
+
+/* 2. Filter the query to show any product_size value that contain a number with REGEXP. */
+
+SELECT 	*
+					,	CASE 
+								WHEN INSTR(product_name, ' -') > 0 THEN LTRIM( RTRIM (SUBSTR(product_name , INSTR(product_name, ' - ')+3, LENGTH(product_name) - INSTR(product_name, ' - ') ) ) )
+								ELSE NULL
+						END AS description
+							
+FROM 		product
+WHERE 	product_size REGEXP  "\d" 
+
+
+
+-- UNION
+/* 1. Using a UNION, write a query that displays the market dates with the highest and lowest total sales.
+
+HINT: There are a possibly a few ways to do this query, but if you're struggling, try the following: 
+1) Create a CTE/Temp Table to find sales values grouped dates; 
+2) Create another CTE/Temp table with a rank windowed function on the previous query to create 
+"best day" and "worst day"; 
+3) Query the second temp table twice, once for the best day, once for the worst day, 
+with a UNION binding them. */
+
+WITH highest as
+                (
+                SELECT 		
+                                        market_date
+                                ,	SUM(quantity * cost_to_customer_per_qty) AS Balance
+                                
+                FROM 		customer_purchases
+                GROUP BY	market_date
+                ORDER BY	SUM(quantity * cost_to_customer_per_qty)  DESC
+                LIMIT 1
+                ),	
+lowest as
+                (
+                SELECT 		
+                                        market_date
+                                ,	SUM(quantity * cost_to_customer_per_qty) AS Balance
+                                                                
+                FROM 		customer_purchases
+                GROUP BY	market_date
+                ORDER BY	SUM(quantity * cost_to_customer_per_qty) 
+                LIMIT 1
+                )		
+	
+
+			
+SELECT	        "best day" , *
+FROM 		highest
+--
+UNION
+--
+SELECT		"worst day", *
+FROM 		lowest
+
